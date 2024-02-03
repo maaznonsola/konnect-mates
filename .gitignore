@@ -1,3 +1,4 @@
 node_modules/
-Guide/
+guide_BE/
+guide_FE/
 config/default.json
