@@ -3,6 +3,7 @@ import {Link} from "react-router-dom";
 import PropTypes from "prop-types";
 import {connect} from "react-redux";
 import {getCurrentProfile} from "../../actions/profile";
+import DashboardActions from "./DashboardActions";
 
 const Dashboard = ({getCurrentProfile, auth: {user}, profile: {profile}}) => {
   useEffect(() => {
@@ -16,6 +17,7 @@ const Dashboard = ({getCurrentProfile, auth: {user}, profile: {profile}}) => {
       </p>
       {profile !== null ? (
         <>
+          <DashboardActions />
           <div className="my-2">
             <button className="btn btn-danger" onClick={() => {}}>
               <i className="fas fa-user-minus" /> Delete My Account

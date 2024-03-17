@@ -1,8 +1,8 @@
-import React, {useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import React, {useState, useEffect} from "react";
+import {Link, useNavigate, useMatch} from "react-router-dom";
 import PropTypes from "prop-types";
 import {connect} from "react-redux";
-import {createProfile} from "../../actions/profile";
+import {createProfile, getCurrentProfile} from "../../actions/profile";
 
 /*
   NOTE: declare initialState outside of component
@@ -24,12 +24,40 @@ const initialState = {
   instagram: "",
 };
 
-const ProfileForm = ({profile: {profile}, createProfile}) => {
+const ProfileForm = ({
+  profile: {profile, loading},
+  createProfile,
+  getCurrentProfile,
+}) => {
   const [formData, setFormData] = useState(initialState);
 
   const [displaySocialInputs, toggleSocialInputs] = useState(false);
 
+  const creatingProfile = useMatch("/create-profile");
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // if there is no profile, attempt to fetch one
+    if (!profile) getCurrentProfile();
+
+    // if we finished loading and we do have a profile
+    // then build our profileData
+    if (!loading && profile) {
+      const profileData = {...initialState};
+      for (const key in profile) {
+        if (key in profileData) profileData[key] = profile[key];
+      }
+      for (const key in profile.social) {
+        if (key in profileData) profileData[key] = profile.social[key];
+      }
+      // the skills may be an array from our API response
+      if (Array.isArray(profileData.skills))
+        profileData.skills = profileData.skills.join(", ");
+      // set local state with the profileData
+      setFormData(profileData);
+    }
+  }, [loading, getCurrentProfile, profile]);
 
   const {
     company,
@@ -59,10 +87,15 @@ const ProfileForm = ({profile: {profile}, createProfile}) => {
 
   return (
     <section className="container">
-      <h1 className="large text-primary">Create Your Profile</h1>
+      <h1 className="large text-primary">
+        {creatingProfile ? "Create Your Profile" : "Edit Your Profile"}
+      </h1>
       <p className="lead">
-        <i className="fas fa-user"></i> Let's get some information to make your
-        profile stand out
+        <i className="fas fa-user"></i>
+        {creatingProfile
+          ? ` Let's get some information to make your
+          profile stand out`
+          : " Add some changes to your profile"}
       </p>
       <small>* = required field</small>
       <form className="form" onSubmit={onSubmit}>
@@ -234,6 +267,7 @@ const ProfileForm = ({profile: {profile}, createProfile}) => {
 
 ProfileForm.propTypes = {
   createProfile: PropTypes.func.isRequired,
+  getCurrentProfile: PropTypes.func.isRequired,
   profile: PropTypes.object.isRequired,
 };
 
@@ -241,4 +275,6 @@ const mapStateToProps = (state) => ({
   profile: state.profile,
 });
 
-export default connect(mapStateToProps, {createProfile})(ProfileForm);
+export default connect(mapStateToProps, {createProfile, getCurrentProfile})(
+  ProfileForm
+);
