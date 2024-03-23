@@ -34,12 +34,6 @@ export const loadUser = () => async (dispatch) => {
 
 // Register User
 export const register = (formData) => async (dispatch) => {
-  const config = {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-  const body = JSON.stringify(formData);
   try {
     const res = await axios.post("/api/users", formData);
 
