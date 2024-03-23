@@ -1,6 +1,0 @@
-{
-  "mongoURI": "mongodb+srv://admin:admin@konnect-mates.8ixuvfo.mongodb.net/?retryWrites=true&w=majority",
-  "jwtSecret": "mysecret",
-  "githubClientId": "293acd35185cbce09b6d",
-  "githubSecret": "4fd1c84af4e28e53d7236f709cda88e4f39fb2eb"
-}
