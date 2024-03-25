@@ -4,6 +4,8 @@ const config = require("config");
 const router = express.Router();
 const auth = require("../../middleware/auth");
 const {check, validationResult} = require("express-validator");
+// bring in normalize to give us a proper url, regardless of what user entered
+const normalize = require("normalize-url");
 
 const Profile = require("../../models/Profile");
 const User = require("../../models/User");
@@ -46,12 +48,12 @@ router.post(
     // destructure the request
     const {
       company,
-      website,
       location,
+      website,
       bio,
+      skills,
       status,
       githubusername,
-      skills,
       youtube,
       twitter,
       instagram,
@@ -59,28 +61,29 @@ router.post(
       facebook,
     } = req.body;
 
-    // build a profile object
-    const profileFields = {};
-    profileFields.user = req.user.id;
+    //Build profile object
+    const profileFields = {
+      user: req.user.id,
+      company,
+      location,
+      website: website === "" ? "" : normalize(website, {forceHttps: true}),
+      bio,
+      skills: Array.isArray(skills)
+        ? skills
+        : skills.split(",").map((skill) => " " + skill.trim()),
+      status,
+      githubusername,
+    };
 
-    if (company) profileFields.company = company;
-    if (website) profileFields.website = website;
-    if (location) profileFields.location = location;
-    if (bio) profileFields.bio = bio;
-    if (status) profileFields.status = status;
-    if (githubusername) profileFields.githubusername = githubusername;
-    if (skills) {
-      profileFields.skills = skills.split(",").map((skill) => skill.trim());
+    const socialFields = {youtube, twitter, instagram, linkedin, facebook};
+
+    // normalize social fields to ensure valid url
+    for (const [key, value] of Object.entries(socialFields)) {
+      if (value && value.length > 0)
+        socialFields[key] = normalize(value, {forceHttps: true});
     }
-    console.log(profileFields.skills);
-
-    // Build socialFields object
-    profileFields.social = {};
-    if (youtube) profileFields.social.youtube = youtube;
-    if (twitter) profileFields.social.twitter = twitter;
-    if (instagram) profileFields.social.instagram = instagram;
-    if (linkedin) profileFields.social.linkedin = linkedin;
-    if (facebook) profileFields.social.facebook = facebook;
+    // add to profileFields
+    profileFields.social = socialFields;
 
     try {
       let profile = await Profile.findOne({user: req.user.id});
