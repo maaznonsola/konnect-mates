@@ -13,6 +13,7 @@ import Profiles from "./components/profiles/Profiles";
 import Profile from "./components/profile/Profile";
 import Posts from "./components/posts/Posts";
 import Post from "./components/post/Post";
+import TermsConditions from "./components/terms-conditions/TermsConditions";
 import PrivateRoute from "./components/routing/PrivateRoute";
 
 // Redux
@@ -22,6 +23,8 @@ import {loadUser} from "./actions/auth";
 import setAuthToken from "./utils/setAuthToken";
 
 import "./App.css";
+import VersionChanges from "./components/version-changes/VersionChanges";
+import InstallApp from "./components/install-app/InstallApp";
 
 if (localStorage.token) {
   setAuthToken(localStorage.token);
@@ -43,6 +46,9 @@ const App = () => {
           <Route path="login" element={<Login />} />
           <Route path="profiles" element={<Profiles />} />
           <Route path="profile/:id" element={<Profile />} />
+          <Route path="install-app" element={<InstallApp />} />
+          <Route path="version-changes" element={<VersionChanges />} />
+          <Route path="terms-conditions" element={<TermsConditions />} />
           <Route
             path="dashboard"
             element={<PrivateRoute component={Dashboard} />}
