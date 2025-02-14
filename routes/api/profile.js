@@ -33,30 +33,18 @@ const updateAvatar = async (user) => {
   if (!user) return;
 
   const gravatarUrl = normalize(
-    gravatar.url(user.email, {s: "200", r: "pg", d: "mm"}),
+    gravatar.url(user.email, {s: "200", r: "pg", d: "404"}),
     {forceHttps: true}
   );
 
-  try {
-    const response = await axios.get(gravatarUrl, {
-      responseType: "arraybuffer",
-    });
-    const isDefaultGravatar = response.request.res.responseUrl.includes("d=mm");
+  const bgColor = getRandomColor().replace("#", ""); // Remove "#" for URL compatibility
+  user.avatar = gravatarUrl.includes("404")
+    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        getInitials(user.name)
+      )}&background=${bgColor}&color=ffffff&size=200&bold=true`
+    : gravatarUrl;
 
-    if (isDefaultGravatar) {
-      const initials = getInitials(user.name);
-      const bgColor = getRandomColor().replace("#", ""); // Remove "#" for URL compatibility
-      user.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        initials
-      )}&background=${bgColor}&color=ffffff&size=200&bold=true`;
-    } else {
-      user.avatar = gravatarUrl;
-    }
-
-    await user.save();
-  } catch (err) {
-    console.error("Error fetching Gravatar:", err.message);
-  }
+  return user.save();
 };
 
 // @route    GET api/profile/me
