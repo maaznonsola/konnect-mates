@@ -4,12 +4,60 @@ const config = require("config");
 const router = express.Router();
 const auth = require("../../middleware/auth");
 const {check, validationResult} = require("express-validator");
+const gravatar = require("gravatar");
 // bring in normalize to give us a proper url, regardless of what user entered
 const normalize = require("normalize-url");
 
 const Profile = require("../../models/Profile");
 const User = require("../../models/User");
 const Post = require("../../models/Post");
+
+const getInitials = (name) => {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+};
+
+const getRandomColor = () => {
+  const letters = "89ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * letters.length)];
+  }
+  return color;
+};
+
+const updateAvatar = async (user) => {
+  if (!user) return;
+
+  const gravatarUrl = normalize(
+    gravatar.url(user.email, {s: "200", r: "pg", d: "mm"}),
+    {forceHttps: true}
+  );
+
+  try {
+    const response = await axios.get(gravatarUrl, {
+      responseType: "arraybuffer",
+    });
+    const isDefaultGravatar = response.request.res.responseUrl.includes("d=mm");
+
+    if (isDefaultGravatar) {
+      const initials = getInitials(user.name);
+      const bgColor = getRandomColor().replace("#", ""); // Remove "#" for URL compatibility
+      user.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        initials
+      )}&background=${bgColor}&color=ffffff&size=200&bold=true`;
+    } else {
+      user.avatar = gravatarUrl;
+    }
+
+    await user.save();
+  } catch (err) {
+    console.error("Error fetching Gravatar:", err.message);
+  }
+};
 
 // @route    GET api/profile/me
 // @desc     Get current users profile
@@ -24,6 +72,7 @@ router.get("/me", auth, async (req, res) => {
       return res.status(400).json({msg: "There is no profile for this user"});
     }
 
+    await updateAvatar(profile.user);
     res.json(profile);
   } catch (err) {
     console.error(err.message);
@@ -115,6 +164,9 @@ router.post(
 router.get("/", async (req, res) => {
   try {
     const profiles = await Profile.find().populate("user", ["name", "avatar"]);
+    for (const profile of profiles) {
+      await updateAvatar(profile.user);
+    }
     res.json(profiles);
   } catch (err) {
     console.error(err.message);
@@ -133,6 +185,7 @@ router.get("/user/:user_id", async (req, res) => {
 
     if (!profile) return res.status(400).json({msg: "Profile not found"});
 
+    await updateAvatar(profile.user);
     return res.json(profile);
   } catch (err) {
     console.error(err.message);
