@@ -15,6 +15,7 @@ import Posts from "./components/posts/Posts";
 import Post from "./components/post/Post";
 import TermsConditions from "./components/terms-conditions/TermsConditions";
 import PrivateRoute from "./components/routing/PrivateRoute";
+import NotFound from "./components/not-found/NotFound";
 
 // Redux
 import {Provider} from "react-redux";
@@ -71,6 +72,7 @@ const App = () => {
           />
           <Route path="posts" element={<PrivateRoute component={Posts} />} />
           <Route path="posts/:id" element={<PrivateRoute component={Post} />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </Provider>
